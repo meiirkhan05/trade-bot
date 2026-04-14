@@ -1121,19 +1121,23 @@ async def show_stock_card(callback: types.CallbackQuery):
 
 @dp.callback_query(F.data.startswith("set_lang:"))
 async def set_language_callback(callback: types.CallbackQuery):
-    lang = callback.data.split(":")[1]
-    user_id = callback.from_user.id
+    try:
+        lang = callback.data.split(":")[1]
+        user_id = callback.from_user.id
 
-    set_user_language(user_id, lang)
+        set_user_language(user_id, lang)
 
-    user_name = get_user_name(callback.from_user)
+        user_name = get_user_name(callback.from_user)
 
-    await callback.message.answer(
-        f"{LANGUAGES[lang]}",
-        reply_markup=main_menu_keyboard(user_id),
-    )
+        await callback.message.answer(
+            f"{TEXTS[lang]['start'].format(name=user_name)}\n\n{TEXTS[lang]['menu']}",
+            reply_markup=main_menu_keyboard(user_id),
+        )
 
-    await callback.answer()
+        await callback.answer()
+    except Exception as e:
+        await callback.message.answer(f"Ошибка выбора языка: {e}")
+        await callback.answer()
 
 
 @dp.callback_query(F.data.startswith("toggle_portfolio:"))
