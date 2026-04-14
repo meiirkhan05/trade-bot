@@ -100,6 +100,22 @@ main_keyboard = ReplyKeyboardMarkup(
 )
 
 
+TEXTS = {
+    "start": {
+        "ru": "Привет, {name} 👋\n\nЯ бот для анализа акций.",
+        "en": "Hello, {name} 👋\n\nI am a stock analysis bot.",
+        "kk": "Сәлем, {name} 👋\n\nМен акцияларды талдайтын ботпын.",
+        "cs": "Ahoj, {name} 👋\n\nJsem bot pro analýzu akcií.",
+    },
+    "menu": {
+        "ru": "/list — список акций\n/portfolio — портфель\n/analyze — анализ",
+        "en": "/list — stock list\n/portfolio — portfolio\n/analyze — analysis",
+        "kk": "/list — акциялар тізімі\n/portfolio — портфель\n/analyze — талдау",
+        "cs": "/list — seznam akcií\n/portfolio — portfolio\n/analyze — analýza",
+    }
+}
+
+
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
@@ -1036,10 +1052,19 @@ async def show_stock_card(callback: types.CallbackQuery):
 @dp.callback_query(F.data.startswith("set_lang:"))
 async def set_language_callback(callback: types.CallbackQuery):
     lang = callback.data.split(":")[1]
+    user_id = callback.from_user.id
 
-    set_user_language(callback.from_user.id, lang)
+    set_user_language(user_id, lang)
 
-    await callback.message.answer(f"Язык сохранен: {LANGUAGES[lang]}")
+    user_name = callback.from_user.first_name
+
+    text = (
+        TEXTS["start"][lang].format(name=user_name)
+        + "\n\n"
+        + TEXTS["menu"][lang]
+    )
+
+    await callback.message.answer(text)
     await callback.answer()
 
 
