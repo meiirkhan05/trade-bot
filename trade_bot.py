@@ -981,12 +981,12 @@ async def cmd_list(message: types.Message):
     user_name = get_user_name(message.from_user)
 
     await message.answer(
-        f"<b>{user_name}, список акций</b>\nВыбери бумагу:",
+        f"<b>{t(message.from_user.id, 'list_title', name=user_name)}</b>\n{t(message.from_user.id, 'choose_stock')}",
         parse_mode="HTML",
-        reply_markup=main_keyboard,
+        reply_markup=main_menu_keyboard(message.from_user.id),
     )
     await message.answer(
-        "Нажми на нужную акцию:",
+        t(message.from_user.id, "press_stock"),
         reply_markup=stock_list_keyboard(),
     )
 
