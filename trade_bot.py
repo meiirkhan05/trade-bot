@@ -100,6 +100,18 @@ main_keyboard = ReplyKeyboardMarkup(
 )
 
 
+def main_menu_keyboard(user_id: int) -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=t(user_id, "menu_list"))],
+            [KeyboardButton(text=t(user_id, "menu_portfolio")), KeyboardButton(text=t(user_id, "menu_analyze"))],
+            [KeyboardButton(text=t(user_id, "menu_watch_on")), KeyboardButton(text=t(user_id, "menu_watch_off"))],
+            [KeyboardButton(text=t(user_id, "menu_help")), KeyboardButton(text=t(user_id, "menu_language"))],
+        ],
+        resize_keyboard=True
+    )
+
+
 TEXTS = {
     "start": {
         "ru": "Привет, {name} 👋\n\nЯ бот для анализа акций.",
@@ -310,6 +322,12 @@ def set_user_language(user_id: int, language: str):
     conn.close()
 
 
+def t(user_id: int, key: str, **kwargs) -> str:
+    lang = get_user_language(user_id)
+    text = TEXTS.get(lang, TEXTS["ru"]).get(key, key)
+    return text.format(**kwargs)
+
+
 def set_watcher(user_id: int, active: bool):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
@@ -395,6 +413,58 @@ LANGUAGES = {
     "en": "🇬🇧 English",
     "kk": "🇰🇿 Қазақша",
     "cs": "🇨🇿 Čeština",
+}
+
+
+TEXTS = {
+    "ru": {
+        "menu_list": "📋 Список акций",
+        "menu_portfolio": "💼 Мой портфель",
+        "menu_analyze": "📊 Анализировать",
+        "menu_watch_on": "📡 Включить слежение",
+        "menu_watch_off": "⛔ Выключить слежение",
+        "menu_help": "ℹ️ Помощь",
+        "menu_language": "🌐 Сменить язык",
+        "list_title": "{name}, список акций",
+        "choose_stock": "Выбери бумагу:",
+        "press_stock": "Нажми на нужную акцию:",
+    },
+    "en": {
+        "menu_list": "📋 Stock list",
+        "menu_portfolio": "💼 My portfolio",
+        "menu_analyze": "📊 Analyze",
+        "menu_watch_on": "📡 Enable tracking",
+        "menu_watch_off": "⛔ Disable tracking",
+        "menu_help": "ℹ️ Help",
+        "menu_language": "🌐 Change language",
+        "list_title": "{name}, stock list",
+        "choose_stock": "Choose a stock:",
+        "press_stock": "Tap the stock you need:",
+    },
+    "kk": {
+        "menu_list": "📋 Акциялар тізімі",
+        "menu_portfolio": "💼 Менің портфелім",
+        "menu_analyze": "📊 Талдау",
+        "menu_watch_on": "📡 Бақылауды қосу",
+        "menu_watch_off": "⛔ Бақылауды өшіру",
+        "menu_help": "ℹ️ Көмек",
+        "menu_language": "🌐 Тілді өзгерту",
+        "list_title": "{name}, акциялар тізімі",
+        "choose_stock": "Акцияны таңдаңыз:",
+        "press_stock": "Қажетті акцияны басыңыз:",
+    },
+    "cs": {
+        "menu_list": "📋 Seznam akcií",
+        "menu_portfolio": "💼 Moje portfolio",
+        "menu_analyze": "📊 Analyzovat",
+        "menu_watch_on": "📡 Zapnout sledování",
+        "menu_watch_off": "⛔ Vypnout sledování",
+        "menu_help": "ℹ️ Nápověda",
+        "menu_language": "🌐 Změnit jazyk",
+        "list_title": "{name}, seznam akcií",
+        "choose_stock": "Vyber akcii:",
+        "press_stock": "Klikni na požadovanou akcii:",
+    },
 }
 
 
@@ -1056,15 +1126,13 @@ async def set_language_callback(callback: types.CallbackQuery):
 
     set_user_language(user_id, lang)
 
-    user_name = callback.from_user.first_name
+    user_name = get_user_name(callback.from_user)
 
-    text = (
-        TEXTS["start"][lang].format(name=user_name)
-        + "\n\n"
-        + TEXTS["menu"][lang]
+    await callback.message.answer(
+        f"{LANGUAGES[lang]}",
+        reply_markup=main_menu_keyboard(user_id),
     )
 
-    await callback.message.answer(text)
     await callback.answer()
 
 
